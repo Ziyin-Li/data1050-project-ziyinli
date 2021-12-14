@@ -1,0 +1,10 @@
+*
+
+!.gitignore
+!*.py
+!*.txt
+!*.csv
+!*.ipynb
+!/**/*.md
+!assets
+!assets/*.css

@@ -1,0 +1,13 @@
+flask
+dash
+pandas
+pandas_datareader
+datetime
+numpy
+sklearn
+statsmodels
+matplotlib
+seaborn
+plotly
+chart-studio
+gunicorn
