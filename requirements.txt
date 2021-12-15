@@ -3,7 +3,6 @@ dash
 pandas
 pandas_datareader
 datetime
-os
 numpy
 sklearn
 statsmodels
