@@ -36,7 +36,10 @@ stock_names=['AAPL','FB','GOOG','MSFT','TSLA','TWTR']
 end = datetime.datetime.today() 
 start = datetime.date(end.year-10,1,1)
 
-os.remove('./stock_data.csv')
+try:
+    os.remove('./stock_data.csv')
+except:
+    continue
 
 for i in range(0,len(stock_names)):
     try:
