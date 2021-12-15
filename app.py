@@ -114,26 +114,17 @@ def MLpipe_R2(X,y,preprocessor,ML_algo,param_grid):
 # +
 # SVR
 param_grid = {
-              'svr__C': [1000,1e4,1e5,1e6,1e7],
-              'svr__gamma': [1e-5,1e-4,1e-3,0.01,0.1,1]
+              'svr__C': [1e6,1e7],
+              'svr__gamma': [1e-5,1e-4,1e-3]
               } 
 
 val_score_svr,test_score_svr = MLpipe_R2(X, y, preprocessor, SVR, param_grid)
-
-# +
-# RF
-param_grid = {
-              'randomforestregressor__n_estimators': [100,300,500,750,1000],
-              'randomforestregressor__min_samples_split': [3,4,5,10,30]
-              } 
-
-val_score_rf,test_score_rf = MLpipe_R2(X, y, preprocessor, RandomForestRegressor, param_grid)
 # -
 
 app.layout = html.Div([html.H1('DS Web Application for Facebook Stock Prices and Performance Metrics', style={'textAlign': 'center'}), 
                        dcc.Markdown('''This interactive dashboard uses two datasets to conduct analysis on Facebook stock prices and performance metrics. The stock data is fetched from [Yahoo Finance](https://finance.yahoo.com/quote/FB/history/). This dataset stores the historical stock prices records of 25 selected companies over 10 years exactly from today. The Facebook metrics dataset is downloaded from [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/Facebook+metrics). It stores several Facebook performance metrics of a renowned cosmetic's brand Facebook page.
 
-The dashboard has three main tabs. In the Stock Prices tab, you can choose which other companies to compare Facebook stock prices with. In the Performance Metrics tab, you can analyze the distributions of each of the Facebook metrics. Particular interest is on how paying to advertise posts can boost posts visibility. In the Machine Learning tab, you can choose a company and then get to see the plots of ARIMA predictions on its stock prices. The results from two ML regression models (SVR and Random Forest Regressor) trained on the Facebook metrics dataset are also provided.
+The dashboard has three main tabs. In the Stock Prices tab, you can choose which other companies to compare Facebook stock prices with. In the Performance Metrics tab, you can analyze the distributions of each of the Facebook metrics. Particular interest is on how paying to advertise posts can boost posts visibility. In the Machine Learning tab, you can choose a company and then get to see the plots of ARIMA predictions on its stock prices. The results from SVR trained on the Facebook metrics dataset are also provided.
 
 The stock data is daily updated and the ML models are trained in real time.''') ,
     dcc.Tabs(id="tabs", children=[
@@ -329,8 +320,6 @@ html.Div([html.H1("Machine Learning", style={"textAlign": "center"}),
         html.H2("Facebook Metrics Regression Prediction", style={"textAlign": "left"}), 
           html.P('Training an SVR model on the Facebook metrics dataset right now online can achieve the best validation score of: '),str(val_score_svr), 
           html.P('The corresponding test score is: '),str(test_score_svr),
-          html.P('Training a RF model on the Facebook metrics dataset right now online can achieve the best validation score of: '),str(val_score_rf), 
-          html.P('The corresponding test score is: '),str(test_score_rf),
           html.P('All the missing values have been replaced with 0; the categorical features have been one-hot encoded and the data has been normalized. The R2 score has been used as the evaluation metric for validation scores and test scores.')
          ],)
 ], className='container')
