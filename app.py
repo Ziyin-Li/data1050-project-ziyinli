@@ -10,6 +10,7 @@ import numpy as np
 import plotly.graph_objs as go
 import pandas_datareader as web
 import datetime
+import os
 
 from sklearn.preprocessing import OneHotEncoder,StandardScaler
 from sklearn.model_selection import train_test_split,KFold
@@ -30,10 +31,12 @@ app = dash.Dash(__name__, external_scripts=external_scripts)
 server = app.server
 # -
 
-stock_names=['AAPL','ADBE','ADP','AMAT','AMD','AMZN','AVGO','CRM','CSCO','EBAY','FB','GOOG','IBM','INTC','INTU','LRCX','MSFT','NFLX','NVDA','ORCL','PYPL','QCOM','TSLA','TWTR','TXN']
+stock_names=['AAPL','FB','GOOG','MSFT','TSLA','TWTR']
 
 end = datetime.datetime.today() 
 start = datetime.date(end.year-10,1,1)
+
+os.remove('./stock_data.csv')
 
 for i in range(0,len(stock_names)):
     try:
@@ -48,137 +51,57 @@ df = pd.read_csv('./stock_data.csv')
 df2 = pd.read_csv('./Facebook_metrics.csv',sep=';')
 
 app.layout = html.Div([html.H1('DS Web Application for Facebook Stock Prices and Performance Metrics', style={'textAlign': 'center'}), 
-                       dcc.Markdown('''This interactive dashboard uses two datasets to conduct analysis on Facebook stock prices and performance metrics. The stock data is fetched from [Yahoo Finance](https://finance.yahoo.com/quote/FB/history/). This dataset stores the historical stock prices records of 25 selected companies over 10 years exactly from today. The Facebook metrics dataset is downloaded from [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/Facebook+metrics). It stores several Facebook performance metrics of a renowned cosmetic's brand Facebook page.
+                       dcc.Markdown('''This interactive dashboard uses two datasets to conduct analysis on Facebook stock prices and performance metrics. The stock data is fetched from [Yahoo Finance](https://finance.yahoo.com/quote/FB/history/). This dataset stores the historical stock prices records of 6 selected companies over 10 years exactly from today. The Facebook metrics dataset is downloaded from [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/Facebook+metrics). It stores several Facebook performance metrics of a renowned cosmetic's brand Facebook page.
 
-The dashboard has three main tabs. In the Stock Prices tab, you can choose which other companies to compare Facebook stock prices with. In the Performance Metrics tab, you can analyze the distributions of each of the Facebook metrics. Particular interest is on how paying to advertise posts can boost posts visibility. In the Machine Learning tab, you can choose a company and then get to see the plots of ARIMA predictions on its stock prices.
+The dashboard has three main tabs. In the Stock Prices tab, you can choose which other companies to compare Facebook stock prices with. In the Facebook Metrics tab, you can analyze the distributions of each of the Facebook metrics. In the Predictions tab, you can choose a company and then get to see the plots of ARIMA predictions on its stock prices.
 
-The stock data is daily updated and the ML model is trained in real time.''') ,
+The stock data is daily updated and the ARIMA model is trained in real time.''') ,
     dcc.Tabs(id="tabs", children=[
         dcc.Tab(label='Stock Prices', children=[
-html.Div([html.H1("Facebook Stocks High vs Low", style={'textAlign': 'center', 'padding-top': 5}),
+html.Div([html.H1("Facebook Stock High vs Low", style={'textAlign': 'center', 'padding-top': 10}),
     dcc.Dropdown(id='my-dropdown1',
                  options=[
                           {'label': 'Apple', 'value': 'AAPL'},
-                          {'label': 'Adobe', 'value': 'ADBE'},
-                          {'label': 'Automatic Data Processing', 'value': 'ADP'},
-                          {'label': 'Applied Materials', 'value': 'AMAT'},
-                          {'label': 'AMD', 'value': 'AMD'},
-                          {'label': 'Amazon', 'value': 'AMZN'},
-                          {'label': 'Broadcom', 'value': 'AVGO'},
-                          {'label': 'Salesforce', 'value': 'CRM'},
-                          {'label': 'Cisco', 'value': 'CSCO'},
-                          {'label': 'Disney', 'value': 'DIS'},
-                          {'label': 'eBay', 'value': 'EBAY'},
                           {'label': 'Facebook', 'value': 'FB'},
                           {'label': 'Google', 'value': 'GOOG'},
-                          {'label': 'IBM', 'value': 'IBM'},
-                          {'label': 'Intel', 'value': 'INTC'},
-                          {'label': 'Intuit', 'value': 'INTU'},
-                          {'label': 'Lam Research', 'value': 'LRCX'},
                           {'label': 'Microsoft', 'value': 'MSFT'},
-                          {'label': 'Netflix', 'value': 'NFLX'},
-                          {'label': 'NVIDIA', 'value': 'NVDA'},
-                          {'label': 'Oracle', 'value': 'ORCL'},
-                          {'label': 'PayPal', 'value': 'PYPL'},
-                          {'label': 'QUALCOMM', 'value': 'QCOM'},
                           {'label': 'Tesla', 'value': 'TSLA'},
-                          {'label': 'Twitter', 'value': 'TWTR'},
-                          {'label': 'Texas Instruments', 'value': 'TXN'}
+                          {'label': 'Twitter', 'value': 'TWTR'}
                          ],
         multi=True,value=['FB'],style={"display": "block", "margin-left": "auto", "margin-right": "auto", "width": "80%"}),
     dcc.Graph(id='highlow'), 
-    html.H1("Facebook Market Volume", style={'textAlign': 'center', 'padding-top': 5}),
+    html.H1("Facebook Stock Volume", style={'textAlign': 'center', 'padding-top': 10}),
     dcc.Dropdown(id='my-dropdown2',
                  options=[
                           {'label': 'Apple', 'value': 'AAPL'},
-                          {'label': 'Adobe', 'value': 'ADBE'},
-                          {'label': 'Automatic Data Processing', 'value': 'ADP'},
-                          {'label': 'Applied Materials', 'value': 'AMAT'},
-                          {'label': 'AMD', 'value': 'AMD'},
-                          {'label': 'Amazon', 'value': 'AMZN'},
-                          {'label': 'Broadcom', 'value': 'AVGO'},
-                          {'label': 'Salesforce', 'value': 'CRM'},
-                          {'label': 'Cisco', 'value': 'CSCO'},
-                          {'label': 'Disney', 'value': 'DIS'},
-                          {'label': 'eBay', 'value': 'EBAY'},
                           {'label': 'Facebook', 'value': 'FB'},
                           {'label': 'Google', 'value': 'GOOG'},
-                          {'label': 'IBM', 'value': 'IBM'},
-                          {'label': 'Intel', 'value': 'INTC'},
-                          {'label': 'Intuit', 'value': 'INTU'},
-                          {'label': 'Lam Research', 'value': 'LRCX'},
                           {'label': 'Microsoft', 'value': 'MSFT'},
-                          {'label': 'Netflix', 'value': 'NFLX'},
-                          {'label': 'NVIDIA', 'value': 'NVDA'},
-                          {'label': 'Oracle', 'value': 'ORCL'},
-                          {'label': 'PayPal', 'value': 'PYPL'},
-                          {'label': 'QUALCOMM', 'value': 'QCOM'},
                           {'label': 'Tesla', 'value': 'TSLA'},
-                          {'label': 'Twitter', 'value': 'TWTR'},
-                          {'label': 'Texas Instruments', 'value': 'TXN'}
+                          {'label': 'Twitter', 'value': 'TWTR'}
                      ],
         multi=True,value=['FB'],style={"display": "block", "margin-left": "auto", "margin-right": "auto", "width": "80%"}),
     dcc.Graph(id='volume'),
-    html.H1("Scatter Analysis", style={'textAlign': 'center', 'padding-top': -10}),
+    html.H1("Stock Comparisons", style={'textAlign': 'center', 'padding-top': 10}),
     dcc.Dropdown(id='my-dropdown3',
                  options=[
                           {'label': 'Apple', 'value': 'AAPL'},
-                          {'label': 'Adobe', 'value': 'ADBE'},
-                          {'label': 'Automatic Data Processing', 'value': 'ADP'},
-                          {'label': 'Applied Materials', 'value': 'AMAT'},
-                          {'label': 'AMD', 'value': 'AMD'},
-                          {'label': 'Amazon', 'value': 'AMZN'},
-                          {'label': 'Broadcom', 'value': 'AVGO'},
-                          {'label': 'Salesforce', 'value': 'CRM'},
-                          {'label': 'Cisco', 'value': 'CSCO'},
-                          {'label': 'Disney', 'value': 'DIS'},
-                          {'label': 'eBay', 'value': 'EBAY'},
                           {'label': 'Facebook', 'value': 'FB'},
                           {'label': 'Google', 'value': 'GOOG'},
-                          {'label': 'IBM', 'value': 'IBM'},
-                          {'label': 'Intel', 'value': 'INTC'},
-                          {'label': 'Intuit', 'value': 'INTU'},
-                          {'label': 'Lam Research', 'value': 'LRCX'},
                           {'label': 'Microsoft', 'value': 'MSFT'},
-                          {'label': 'Netflix', 'value': 'NFLX'},
-                          {'label': 'NVIDIA', 'value': 'NVDA'},
-                          {'label': 'Oracle', 'value': 'ORCL'},
-                          {'label': 'PayPal', 'value': 'PYPL'},
-                          {'label': 'QUALCOMM', 'value': 'QCOM'},
                           {'label': 'Tesla', 'value': 'TSLA'},
-                          {'label': 'Twitter', 'value': 'TWTR'},
-                          {'label': 'Texas Instruments', 'value': 'TXN'}
+                          {'label': 'Twitter', 'value': 'TWTR'}
                      ],
                  value= 'FB',
                  style={"display": "block", "margin-left": "auto", "margin-right": "auto", "width": "45%"}),
     dcc.Dropdown(id='my-dropdown4',
                  options=[
                           {'label': 'Apple', 'value': 'AAPL'},
-                          {'label': 'Adobe', 'value': 'ADBE'},
-                          {'label': 'Automatic Data Processing', 'value': 'ADP'},
-                          {'label': 'Applied Materials', 'value': 'AMAT'},
-                          {'label': 'AMD', 'value': 'AMD'},
-                          {'label': 'Amazon', 'value': 'AMZN'},
-                          {'label': 'Broadcom', 'value': 'AVGO'},
-                          {'label': 'Salesforce', 'value': 'CRM'},
-                          {'label': 'Cisco', 'value': 'CSCO'},
-                          {'label': 'Disney', 'value': 'DIS'},
-                          {'label': 'eBay', 'value': 'EBAY'},
                           {'label': 'Facebook', 'value': 'FB'},
                           {'label': 'Google', 'value': 'GOOG'},
-                          {'label': 'IBM', 'value': 'IBM'},
-                          {'label': 'Intel', 'value': 'INTC'},
-                          {'label': 'Intuit', 'value': 'INTU'},
-                          {'label': 'Lam Research', 'value': 'LRCX'},
                           {'label': 'Microsoft', 'value': 'MSFT'},
-                          {'label': 'Netflix', 'value': 'NFLX'},
-                          {'label': 'NVIDIA', 'value': 'NVDA'},
-                          {'label': 'Oracle', 'value': 'ORCL'},
-                          {'label': 'PayPal', 'value': 'PYPL'},
-                          {'label': 'QUALCOMM', 'value': 'QCOM'},
                           {'label': 'Tesla', 'value': 'TSLA'},
-                          {'label': 'Twitter', 'value': 'TWTR'},
-                          {'label': 'Texas Instruments', 'value': 'TXN'}
+                          {'label': 'Twitter', 'value': 'TWTR'}
                      ],
                  value= 'AAPL',
                  style={"display": "block", "margin-left": "auto", "margin-right": "auto", "width": "45%"}),
@@ -189,7 +112,7 @@ html.Div([html.H1("Facebook Stocks High vs Low", style={'textAlign': 'center', '
 ], className='container'),
 ]),
 dcc.Tab(label='Facebook Metrics', children=[
-html.Div([html.H1("Facebook Metrics Distributions", style={"textAlign": "center"}),
+html.Div([html.H1("Facebook Metrics Distributions", style={'textAlign': 'center', 'padding-top': 10}),
             html.Div([html.Div([dcc.Dropdown(id='feature-selected1',
                                              options=[{'label': i.title(), 'value': i} for i in
                                                       df2.columns.values[1:]],
@@ -198,7 +121,7 @@ html.Div([html.H1("Facebook Metrics Distributions", style={"textAlign": "center"
                                       "width": "80%"}),
                       ],),
             dcc.Graph(id='my-graph2'),
-     html.H1('Paid vs Free Posts by Type', style={'textAlign': "center", 'padding-top': 5}),
+     html.H2('Paid vs Free Posts Performance', style={'textAlign': 'center', 'padding-top': 10}),
      html.Div([
          dcc.RadioItems(id="select-survival", value=str(1), labelStyle={'display': 'inline-block', 'padding': 10},
                         options=[{'label': "Paid", 'value': str(1)}, {'label': "Free", 'value': str(0)}], )],
@@ -206,37 +129,16 @@ html.Div([html.H1("Facebook Metrics Distributions", style={"textAlign": "center"
      html.Div([html.Div([dcc.Graph(id="hist-graph", clear_on_unhover=True, )]), ]),
         ], className="container"),
 ]),
-dcc.Tab(label='Machine Learning', children=[
-html.Div([html.H1("Machine Learning", style={"textAlign": "center"}), 
-          html.H2("ARIMA Time Series Prediction", style={"textAlign": "left"}),
+dcc.Tab(label='Predictions', children=[
+html.Div([html.H1("ARIMA Time Series Predictions on Stock Data", style={'textAlign': 'center','padding-top': 10}), 
           dcc.Dropdown(id='my-dropdowntest',
                  options=[
                           {'label': 'Apple', 'value': 'AAPL'},
-                          {'label': 'Adobe', 'value': 'ADBE'},
-                          {'label': 'Automatic Data Processing', 'value': 'ADP'},
-                          {'label': 'Applied Materials', 'value': 'AMAT'},
-                          {'label': 'AMD', 'value': 'AMD'},
-                          {'label': 'Amazon', 'value': 'AMZN'},
-                          {'label': 'Broadcom', 'value': 'AVGO'},
-                          {'label': 'Salesforce', 'value': 'CRM'},
-                          {'label': 'Cisco', 'value': 'CSCO'},
-                          {'label': 'Disney', 'value': 'DIS'},
-                          {'label': 'eBay', 'value': 'EBAY'},
                           {'label': 'Facebook', 'value': 'FB'},
                           {'label': 'Google', 'value': 'GOOG'},
-                          {'label': 'IBM', 'value': 'IBM'},
-                          {'label': 'Intel', 'value': 'INTC'},
-                          {'label': 'Intuit', 'value': 'INTU'},
-                          {'label': 'Lam Research', 'value': 'LRCX'},
                           {'label': 'Microsoft', 'value': 'MSFT'},
-                          {'label': 'Netflix', 'value': 'NFLX'},
-                          {'label': 'NVIDIA', 'value': 'NVDA'},
-                          {'label': 'Oracle', 'value': 'ORCL'},
-                          {'label': 'PayPal', 'value': 'PYPL'},
-                          {'label': 'QUALCOMM', 'value': 'QCOM'},
                           {'label': 'Tesla', 'value': 'TSLA'},
-                          {'label': 'Twitter', 'value': 'TWTR'},
-                          {'label': 'Texas Instruments', 'value': 'TXN'}
+                          {'label': 'Twitter', 'value': 'TWTR'}
                      ],
                 style={"display": "block", "margin-left": "auto", "margin-right": "auto", "width": "50%"}),
           dcc.RadioItems(id="radiopred", value="High", labelStyle={'display': 'inline-block', 'padding': 10},
@@ -252,10 +154,7 @@ html.Div([html.H1("Machine Learning", style={"textAlign": "center"}),
 @app.callback(Output('highlow', 'figure'),
               [Input('my-dropdown1', 'value')])
 def update_graph(selected_dropdown):
-    dropdown = {'AAPL':'Apple','ADBE':'Adobe','ADP':'Automatic Data Processing','AMAT':'Applied Materials','AMD':'AMD','AMZN':'Amazon',
-            'AVGO':'Broadcom','CRM':'Salesforce','CSCO':'Cisco','DIS':'Disney','EBAY':'eBay','FB':'Facebook','GOOG':'Google',
-           'IBM':'IBM','INTC':'Intel','INTU':'Intuit','LRCX':'Lam Research','MSFT':'Microsoft','NFLX':'Netflix','NVDA':'NVIDIA',
-           'ORCL':'Oracle','PYPL':'PayPal','QCOM':'QUALCOMM','TSLA':'Tesla','TWTR':'Twitter','TXN':'Texas Instruments',}
+    dropdown = {'AAPL':'Apple','FB':'Facebook','GOOG':'Google','MSFT':'Microsoft','TSLA':'Tesla','TWTR':'Twitter',}
     trace1 = []
     trace2 = []
     for stock in selected_dropdown:
@@ -280,10 +179,7 @@ def update_graph(selected_dropdown):
 @app.callback(Output('volume', 'figure'),
               [Input('my-dropdown2', 'value')])
 def update_graph(selected_dropdown_value):
-    dropdown = {'AAPL':'Apple','ADBE':'Adobe','ADP':'Automatic Data Processing','AMAT':'Applied Materials','AMD':'AMD','AMZN':'Amazon',
-            'AVGO':'Broadcom','CRM':'Salesforce','CSCO':'Cisco','DIS':'Disney','EBAY':'eBay','FB':'Facebook','GOOG':'Google',
-           'IBM':'IBM','INTC':'Intel','INTU':'Intuit','LRCX':'Lam Research','MSFT':'Microsoft','NFLX':'Netflix','NVDA':'NVIDIA',
-           'ORCL':'Oracle','PYPL':'PayPal','QCOM':'QUALCOMM','TSLA':'Tesla','TWTR':'Twitter','TXN':'Texas Instruments',}
+    dropdown = {'AAPL':'Apple','FB':'Facebook','GOOG':'Google','MSFT':'Microsoft','TSLA':'Tesla','TWTR':'Twitter',}
     trace1 = []
     for stock in selected_dropdown_value:
         trace1.append(go.Scatter(x=df[df["Stock"] == stock]["Date"],y=df[df["Stock"] == stock]["Volume"],mode='lines',
@@ -305,10 +201,7 @@ def update_graph(selected_dropdown_value):
 @app.callback(Output('scatter', 'figure'),
               [Input('my-dropdown3', 'value'), Input('my-dropdown4', 'value'), Input("radiob", "value"),])
 def update_graph(stock, stock2, radioval):
-    dropdown = {'AAPL':'Apple','ADBE':'Adobe','ADP':'Automatic Data Processing','AMAT':'Applied Materials','AMD':'AMD','AMZN':'Amazon',
-            'AVGO':'Broadcom','CRM':'Salesforce','CSCO':'Cisco','DIS':'Disney','EBAY':'eBay','FB':'Facebook','GOOG':'Google',
-           'IBM':'IBM','INTC':'Intel','INTU':'Intuit','LRCX':'Lam Research','MSFT':'Microsoft','NFLX':'Netflix','NVDA':'NVIDIA',
-           'ORCL':'Oracle','PYPL':'PayPal','QCOM':'QUALCOMM','TSLA':'Tesla','TWTR':'Twitter','TXN':'Texas Instruments',}
+    dropdown = {'AAPL':'Apple','FB':'Facebook','GOOG':'Google','MSFT':'Microsoft','TSLA':'Tesla','TWTR':'Twitter',}
     radio = {"High": "High Prices", "Low": "Low Prices", "Volume": "Market Volume", }
     trace1 = []
     if (stock == None) or (stock2 == None):
@@ -341,7 +234,7 @@ def update_graph(stock, stock2, radioval):
 def update_graph(selected_feature1):
     if selected_feature1 == None:
         selected_feature1 = 'Type'
-        trace = go.Histogram(x= df2.Type,
+        trace = go.Histogram(x=df2.Type,
                              marker=dict(color='rgb(0, 0, 100)'))
     else:
         trace = go.Histogram(x=df2[selected_feature1],
@@ -354,7 +247,7 @@ def update_graph(selected_feature1):
                             xaxis={'title': "Distribution", 'titlefont': {'color': 'black', 'size': 14},
                                    'tickfont': {'size': 14, 'color': 'black'}},
                             yaxis={'title': "Frequency", 'titlefont': {'color': 'black', 'size': 14, },
-                                   'tickfont': {'color': 'black'}},     paper_bgcolor='rgba(0,0,0,0)',
+                                   'tickfont': {'color': 'black'}}, paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)')}
 
 
@@ -364,7 +257,7 @@ def update_graph(selected_feature1):
 def update_graph(selected):
     dff = df2[df2['Paid'] == int(selected)]
     trace = go.Histogram(x=dff['Type'], marker=dict(color='rgb(0, 0, 100)'))
-    layout = go.Layout(xaxis={'title': 'Post distribution types', 'showgrid': False},
+    layout = go.Layout(xaxis={'title': 'Types', 'showgrid': False},
                        yaxis={'title': 'Frequency', 'showgrid': False}, paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)' )
     figure2 = {'data': [trace], 'layout': layout}
@@ -375,10 +268,7 @@ def update_graph(selected):
 @app.callback(Output('traintest', 'figure'),
               [Input('my-dropdowntest', 'value'), Input("radiopred", "value"),])
 def update_graph(stock , radioval):
-    dropdown = {'AAPL':'Apple','ADBE':'Adobe','ADP':'Automatic Data Processing','AMAT':'Applied Materials','AMD':'AMD','AMZN':'Amazon',
-            'AVGO':'Broadcom','CRM':'Salesforce','CSCO':'Cisco','DIS':'Disney','EBAY':'eBay','FB':'Facebook','GOOG':'Google',
-           'IBM':'IBM','INTC':'Intel','INTU':'Intuit','LRCX':'Lam Research','MSFT':'Microsoft','NFLX':'Netflix','NVDA':'NVIDIA',
-           'ORCL':'Oracle','PYPL':'PayPal','QCOM':'QUALCOMM','TSLA':'Tesla','TWTR':'Twitter','TXN':'Texas Instruments',}
+    dropdown = {'AAPL':'Apple','FB':'Facebook','GOOG':'Google','MSFT':'Microsoft','TSLA':'Tesla','TWTR':'Twitter',}
     radio = {"High": "High Prices", "Low": "Low Prices", "Volume": "Market Volume", }
     trace1 = []
     trace2 = []
@@ -417,15 +307,8 @@ def update_graph(stock , radioval):
 @app.callback(Output('preds', 'figure'),
               [Input('my-dropdowntest', 'value'), Input("radiopred", "value"),])
 def update_graph(stock, radioval):
-    dropdown = {'AAPL':'Apple','ADBE':'Adobe','ADP':'Automatic Data Processing','AMAT':'Applied Materials','AMD':'AMD','AMZN':'Amazon',
-            'AVGO':'Broadcom','CRM':'Salesforce','CSCO':'Cisco','DIS':'Disney','EBAY':'eBay','FB':'Facebook','GOOG':'Google',
-           'IBM':'IBM','INTC':'Intel','INTU':'Intuit','LRCX':'Lam Research','MSFT':'Microsoft','NFLX':'Netflix','NVDA':'NVIDIA',
-           'ORCL':'Oracle','PYPL':'PayPal','QCOM':'QUALCOMM','TSLA':'Tesla','TWTR':'Twitter','TXN':'Texas Instruments',}
+    dropdown = {'AAPL':'Apple','FB':'Facebook','GOOG':'Google','MSFT':'Microsoft','TSLA':'Tesla','TWTR':'Twitter',}
     radio = {"High": "High Prices", "Low": "Low Prices", "Volume": "Market Volume", }
-    dropdown = {'AAPL':'Apple','ADBE':'Adobe','ADP':'Automatic Data Processing','AMAT':'Applied Materials','AMD':'AMD','AMZN':'Amazon',
-            'AVGO':'Broadcom','CRM':'Salesforce','CSCO':'Cisco','DIS':'Disney','EBAY':'eBay','FB':'Facebook','GOOG':'Google',
-           'IBM':'IBM','INTC':'Intel','INTU':'Intuit','LRCX':'Lam Research','MSFT':'Microsoft','NFLX':'Netflix','NVDA':'NVIDIA',
-           'ORCL':'Oracle','PYPL':'PayPal','QCOM':'QUALCOMM','TSLA':'Tesla','TWTR':'Twitter','TXN':'Texas Instruments',}
     trace1 = []
     trace2 = []
     if (stock == None):
