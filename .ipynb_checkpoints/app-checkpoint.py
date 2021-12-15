@@ -36,10 +36,8 @@ stock_names=['AAPL','FB','GOOG','MSFT','TSLA','TWTR']
 end = datetime.datetime.today() 
 start = datetime.date(end.year-10,1,1)
 
-try:
+if os.path.exists('./stock_data.csv'):
     os.remove('./stock_data.csv')
-except Exception:
-    pass
 
 for i in range(0,len(stock_names)):
     try:
@@ -63,7 +61,8 @@ The dashboard has three main tabs. In the Stock Prices tab, you can choose which
 The stock data is daily updated and the ARIMA model is trained in real time.''') ,
     dcc.Tabs(id="tabs", children=[
         dcc.Tab(label='Stock Prices', children=[
-html.Div([html.H1("Facebook Stock High vs Low", style={'textAlign': 'center', 'padding-top': 10}),
+html.Div([html.H1("Stock Prices Visualization", style={'textAlign': 'center','padding-top': 20}),
+html.Div([html.H2("Facebook Stock High vs Low", style={'textAlign': 'center', 'padding-top': 10}),
     dcc.Dropdown(id='my-dropdown1',
                  options=[
                           {'label': 'Apple', 'value': 'AAPL'},
@@ -75,7 +74,7 @@ html.Div([html.H1("Facebook Stock High vs Low", style={'textAlign': 'center', 'p
                          ],
         multi=True,value=['FB'],style={"display": "block", "margin-left": "auto", "margin-right": "auto", "width": "80%"}),
     dcc.Graph(id='highlow'), 
-    html.H1("Facebook Stock Volume", style={'textAlign': 'center', 'padding-top': 10}),
+    html.H2("Facebook Stock Volume", style={'textAlign': 'center', 'padding-top': 10}),
     dcc.Dropdown(id='my-dropdown2',
                  options=[
                           {'label': 'Apple', 'value': 'AAPL'},
@@ -87,7 +86,7 @@ html.Div([html.H1("Facebook Stock High vs Low", style={'textAlign': 'center', 'p
                      ],
         multi=True,value=['FB'],style={"display": "block", "margin-left": "auto", "margin-right": "auto", "width": "80%"}),
     dcc.Graph(id='volume'),
-    html.H1("Stock Comparisons", style={'textAlign': 'center', 'padding-top': 10}),
+    html.H2("Stock Comparisons", style={'textAlign': 'center', 'padding-top': 10}),
     dcc.Dropdown(id='my-dropdown3',
                  options=[
                           {'label': 'Apple', 'value': 'AAPL'},
@@ -117,7 +116,7 @@ html.Div([html.H1("Facebook Stock High vs Low", style={'textAlign': 'center', 'p
 ], className='container'),
 ]),
 dcc.Tab(label='Facebook Metrics', children=[
-html.Div([html.H1("Facebook Metrics Distributions", style={'textAlign': 'center', 'padding-top': 10}),
+html.Div([html.H1("Facebook Metrics Distributions", style={'textAlign': 'center', 'padding-top': 20}),
             html.Div([html.Div([dcc.Dropdown(id='feature-selected1',
                                              options=[{'label': i.title(), 'value': i} for i in
                                                       df2.columns.values[1:]],
@@ -146,10 +145,10 @@ html.Div([html.H1("ARIMA Time Series Predictions on Stock Data", style={'textAli
                           {'label': 'Twitter', 'value': 'TWTR'}
                      ],
                 style={"display": "block", "margin-left": "auto", "margin-right": "auto", "width": "50%"}),
-          dcc.RadioItems(id="radiopred", value="High", labelStyle={'display': 'inline-block', 'padding': 10},
+        dcc.RadioItems(id="radiopred", value="High", labelStyle={'display': 'inline-block', 'padding': 10},
                          options=[{'label': "High", 'value': "High"}, {'label': "Low", 'value': "Low"},
                                   {'label': "Volume", 'value': "Volume"}], style={'textAlign': "center", }),
-        dcc.Graph(id='traintest'), dcc.Graph(id='preds'),
+        dcc.Graph(id='traintest'),
          ],)
 ], className='container')
 ])
@@ -300,57 +299,6 @@ def update_graph(stock , radioval):
         figure = {'data': data,
             'layout': go.Layout(colorway=["#5E0DAC", '#FF4F00', '#375CB1', '#FF7400', '#FFF400', '#FF0056'],
                 height=600,title=f"{radio[radioval]} Train-Test Sets for {dropdown[stock]}",
-                xaxis={"title":"Date",
-                       'rangeselector': {'buttons': list([{'count': 1, 'label': '1M', 'step': 'month', 'stepmode': 'backward'},
-                                                          {'count': 6, 'label': '6M', 'step': 'month', 'stepmode': 'backward'},
-                                                          {'step': 'all'}])},
-                       'rangeslider': {'visible': True}, 'type': 'date'},yaxis={"title":"Price (USD)"}, paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)')}
-    return figure
-
-
-@app.callback(Output('preds', 'figure'),
-              [Input('my-dropdowntest', 'value'), Input("radiopred", "value"),])
-def update_graph(stock, radioval):
-    dropdown = {'AAPL':'Apple','FB':'Facebook','GOOG':'Google','MSFT':'Microsoft','TSLA':'Tesla','TWTR':'Twitter',}
-    radio = {"High": "High Prices", "Low": "Low Prices", "Volume": "Market Volume", }
-    trace1 = []
-    trace2 = []
-    if (stock == None):
-        trace1.append(
-        go.Scatter(x=[0],y=[0],mode='markers', opacity=0.7, textposition='bottom center'))
-        traces = [trace1]
-        data = [val for sublist in traces for val in sublist]
-        figure = {'data': data,
-                  'layout': go.Layout(colorway=['#FF7400', '#FFF400', '#FF0056'],
-                                      height=600, title=f"{radio[radioval]}",
-                                      paper_bgcolor='rgba(0,0,0,0)',
-                                      plot_bgcolor='rgba(0,0,0,0)')}
-    else:
-        test_data = df[df['Stock'] == stock][-1000:][int(1000 * 0.8):]
-        train_data = df[df['Stock'] == stock][-1000:][0:int(1000 * 0.8)]
-        train_ar = train_data[radioval].values
-        test_ar = test_data[radioval].values
-        history = [x for x in train_ar]
-        predictions = list()
-        for t in range(len(test_ar)):
-            model = ARIMA(history, order=(3, 1, 0))
-            model_fit = model.fit(disp=0)
-            output = model_fit.forecast()
-            yhat = output[0]
-            predictions.append(yhat)
-            obs = test_ar[t]
-            history.append(obs)
-        error = r2_score(test_ar, predictions)
-        trace1.append(go.Scatter(x=test_data['Date'],y=test_data['High'],mode='lines',
-            opacity=0.6,name=f'Actual Series',textposition='bottom center'))
-        trace2.append(go.Scatter(x=test_data['Date'],y= np.concatenate(predictions).ravel(), mode='lines',
-            opacity=0.7,name=f'Predicted Series (R2: {error})',textposition='bottom center'))
-        traces = [trace1, trace2]
-        data = [val for sublist in traces for val in sublist]
-        figure = {'data': data,
-            'layout': go.Layout(colorway=["#5E0DAC", '#FF4F00', '#375CB1', '#FF7400', '#FFF400', '#FF0056'],
-                height=600,title=f"{radio[radioval]} ARIMA Predictions vs Actual for {dropdown[stock]}",
                 xaxis={"title":"Date",
                        'rangeselector': {'buttons': list([{'count': 1, 'label': '1M', 'step': 'month', 'stepmode': 'backward'},
                                                           {'count': 6, 'label': '6M', 'step': 'month', 'stepmode': 'backward'},
