@@ -38,8 +38,8 @@ start = datetime.date(end.year-10,1,1)
 
 try:
     os.remove('./stock_data.csv')
-except:
-    continue
+except Exception:
+    pass
 
 for i in range(0,len(stock_names)):
     try:
