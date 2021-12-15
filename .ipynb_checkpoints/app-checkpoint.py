@@ -53,6 +53,8 @@ for i in range(0,len(stock_names)):
 df = pd.read_csv('./stock_data.csv')
 df2 = pd.read_csv('./Facebook_metrics.csv',sep=';')
 
+df.columns =['Date','Stock','High','Low','Open','Close','Volume']
+
 app.layout = html.Div([html.H1('DS Web Application for Facebook Stock Prices and Performance Metrics', style={'textAlign': 'center'}), 
                        dcc.Markdown('''This interactive dashboard uses two datasets to conduct analysis on Facebook stock prices and performance metrics. The stock data is fetched from [Yahoo Finance](https://finance.yahoo.com/quote/FB/history/). This dataset stores the historical stock prices records of 6 selected companies over 10 years exactly from today. The Facebook metrics dataset is downloaded from [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/Facebook+metrics). It stores several Facebook performance metrics of a renowned cosmetic's brand Facebook page.
 
