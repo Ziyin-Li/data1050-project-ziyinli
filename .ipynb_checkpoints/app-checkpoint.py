@@ -62,7 +62,7 @@ The stock data is daily updated and the ARIMA model is trained in real time.''')
     dcc.Tabs(id="tabs", children=[
         dcc.Tab(label='Stock Prices', children=[
 html.Div([html.H1("Stock Prices Visualization", style={'textAlign': 'center','padding-top': 20}),
-html.Div([html.H2("Facebook Stock High vs Low", style={'textAlign': 'center', 'padding-top': 10}),
+    html.H2("Facebook Stock High vs Low", style={'textAlign': 'center', 'padding-top': 10}),
     dcc.Dropdown(id='my-dropdown1',
                  options=[
                           {'label': 'Apple', 'value': 'AAPL'},
